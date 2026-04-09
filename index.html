@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>SendySekata | Estetik Word Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, 'Inter', sans-serif;
+      background: linear-gradient(145deg, #1a1e2c 0%, #0f121f 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    /* background subtle noise & glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(rgba(255,255,240,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 650px;
+      width: 100%;
+      background: rgba(22, 26, 40, 0.65);
+      backdrop-filter: blur(12px);
+      border-radius: 3rem;
+      padding: 1.8rem 1.5rem 2rem;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,220,0.1);
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #F9F6E6, #D9D2B0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(12, 15, 28, 0.6);
+      padding: 0.8rem 1.4rem;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,215,150,0.2);
+    }
+
+    .controls label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #E2DCCD;
+      letter-spacing: 0.3px;
+    }
+
+    select {
+      background: #1E243B;
+      border: 1px solid #5f6a8a;
+      color: #F2EBDC;
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    select:hover {
+      border-color: #BFA87A;
+      background: #2A2F48;
+    }
+
+    button#startBtn {
+      background: linear-gradient(105deg, #c7af7b, #b3925c);
+      border: none;
+      padding: 0.5rem 1.5rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: #121212;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      letter-spacing: 0.3px;
+    }
+
+    button#startBtn:hover {
+      background: linear-gradient(105deg, #dbbc8a, #c4a36b);
+      transform: scale(0.97);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Game board styling */
+    #gameBoard {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.8rem 0 1.2rem;
+    }
+
+    .grid {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+    }
+
+    .box {
+      width: 62px;
+      height: 62px;
+      background: rgba(18, 22, 35, 0.8);
+      border-radius: 18px;
+      border: 1.5px solid #363c54;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: 'Poppins', monospace;
+      color: #F4EFE6;
+      transition: all 0.1s ease;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.1);
+      backdrop-filter: blur(2px);
+    }
+
+    /* color feedback modern soft */
+    .green {
+      background: #5d9b5b;
+      border-color: #8bc34a;
+      box-shadow: 0 0 8px rgba(93,155,91,0.5);
+      color: white;
+    }
+    .yellow {
+      background: #cbad5e;
+      border-color: #f3d572;
+      box-shadow: 0 0 8px rgba(203,173,94,0.5);
+      color: #1e1a10;
+    }
+    .gray {
+      background: #3c405b;
+      border-color: #53597a;
+      color: #c0c0cf;
+      text-shadow: none;
+    }
+
+    /* pesan estetik */
+    #message {
+      text-align: center;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      padding: 0.7rem 1rem;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #f0e7cf;
+      margin: 0.5rem 0 1rem;
+      border-left: 3px solid #c7af7b;
+      letter-spacing: 0.2px;
+    }
+
+    /* Keyboard premium */
+    #keyboard {
+      margin-top: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 0.55rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key {
+      min-width: 48px;
+      height: 56px;
+      background: #23283e;
+      border: none;
+      border-radius: 18px;
+      font-family: 'Poppins', monospace;
+      font-weight: 600;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      color: #F2EAD8;
+      cursor: pointer;
+      transition: 0.12s linear;
+      box-shadow: 0 5px 0 #0e101c;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.3rem;
+    }
+
+    .key:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #0e101c;
+    }
+
+    /* special keys */
+    .key.special-key {
+      background: #3d3250;
+      box-shadow: 0 5px 0 #231f30;
+      min-width: 70px;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .key.special-key:active {
+      transform: translateY(2px);
+    }
+
+    .key.green {
+      background: #5d9b5b;
+      box-shadow: 0 5px 0 #3a6138;
+      color: white;
+    }
+    .key.yellow {
+      background: #cbad5e;
+      box-shadow: 0 5px 0 #9b7e42;
+      color: #1a160c;
+    }
+    .key.gray {
+      background: #4a4e6b;
+      box-shadow: 0 5px 0 #2d2f42;
+      color: #dedeea;
+    }
+
+    .submit-key {
+      background: #6f5e3f;
+      box-shadow: 0 5px 0 #493e2a;
+      min-width: 95px;
+      background: linear-gradient(145deg, #9b875b, #7b6946);
+      color: #0f0e0a;
+      font-weight: 700;
+    }
+
+    /* responsif touch friendly */
+    @media (max-width: 560px) {
+      .container {
+        padding: 1rem 1rem 1.5rem;
+      }
+      .box {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+        border-radius: 14px;
+      }
+      .grid {
+        gap: 0.4rem;
+      }
+      .key {
+        min-width: 38px;
+        height: 48px;
+        font-size: 1rem;
+        border-radius: 14px;
+      }
+      .key.special-key {
+        min-width: 58px;
+      }
+      .submit-key {
+        min-width: 80px;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .box {
+        width: 42px;
+        height: 42px;
+        font-size: 1.3rem;
+      }
+      .key {
+        min-width: 32px;
+        height: 44px;
+        font-size: 0.9rem;
+      }
+      .key.special-key {
+        min-width: 52px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* animasi subtle pada box */
+    @keyframes pop {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .box:not(:empty) {
+      animation: pop 0.12s ease-out;
+    }
+
+    footer {
+      font-size: 0.7rem;
+      text-align: center;
+      margin-top: 1.2rem;
+      opacity: 0.5;
+      color: #b9b3a1;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>SendySekata</h1>
+  <div class="controls">
+    <label for="wordLength">📏 Panjang Kata</label>
+    <select id="wordLength">
+      <option value="4">4 Huruf</option>
+      <option value="5" selected>5 Huruf</option>
+      <option value="6">6 Huruf</option>
+    </select>
+    <button id="startBtn">✨ Mulai Game</button>
+  </div>
+  <div id="gameBoard"></div>
+  <p id="message">🎯 Pilih panjang kata & tekan Mulai</p>
+  <div id="keyboard"></div>
+  <footer>✦ tebak kata | arti muncul setelah jawaban ✦</footer>
+</div>
+
+<script>
+  // ********** TIDAK MENGUBAH LOGIKA INTI, hanya menambah tombol Delete/Hapus di keyboard virtual **********
+  // ********** dan mempertahankan semua fungsi dari index.js asli **********
+  
+  let kamus = {};
+  let words = [];
+  let answer = "";
+  let attempts = 0;
+  const maxAttempts = 6;
+
+  // Load kamus
+  fetch("kamus.json")
+    .then((response) => response.json())
+    .then((data) => {
+      kamus = data;
+      words = Object.keys(kamus);
+    })
+    .catch((error) => console.error("Gagal memuat kamus.json:", error));
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const gameBoard = document.getElementById("gameBoard");
+    const message = document.getElementById("message");
+    const lengthSelector = document.getElementById("wordLength");
+    const startBtn = document.getElementById("startBtn");
+    const keyboardDiv = document.getElementById("keyboard");
+
+    let currentAttempt = "";
+    let selectedLength = 5;
+
+    // Fungsi membuat keyboard dengan tambahan tombol HAPUS (⌫)
+    function createKeyboard() {
+      keyboardDiv.innerHTML = ""; // bersihkan sebelumnya
+      const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+      
+      rows.forEach((row) => {
+        let rowDiv = document.createElement("div");
+        rowDiv.classList.add("key-row");
+        row.split("").forEach((letter) => {
+          let key = document.createElement("button");
+          key.textContent = letter;
+          key.classList.add("key");
+          key.dataset.letter = letter;
+          key.addEventListener("click", () => handleInput(letter));
+          rowDiv.appendChild(key);
+        });
+        keyboardDiv.appendChild(rowDiv);
+      });
+      
+      // baris khusus untuk tombol aksi (HAPUS dan TEBAK)
+      let actionRow = document.createElement("div");
+      actionRow.classList.add("key-row");
+      
+      // Tombol HAPUS / DELETE
+      const deleteKey = document.createElement("button");
+      deleteKey.textContent = "⌫ HAPUS";
+      deleteKey.classList.add("key", "special-key");
+      deleteKey.setAttribute("aria-label", "Hapus huruf");
+      deleteKey.addEventListener("click", () => handleBackspace());
+      actionRow.appendChild(deleteKey);
+      
+      // Tombol TEBAK (submit)
+      const submitKey = document.createElement("button");
+      submitKey.textContent = "✨ TEBAK";
+      submitKey.classList.add("key", "submit-key");
+      submitKey.addEventListener("click", () => submitAttempt());
+      actionRow.appendChild(submitKey);
+      
+      keyboardDiv.appendChild(actionRow);
+    }
+
+    function handleInput(letter) {
+      if (currentAttempt.length < selectedLength) {
+        currentAttempt += letter;
+        updateBoard();
+      }
+    }
+
+    function handleBackspace() {
+      if (currentAttempt.length > 0) {
+        currentAttempt = currentAttempt.slice(0, -1);
+        updateBoard();
+      }
+    }
+
+    function updateBoard() {
+      let row = document.querySelector(`.grid[data-index='${attempts}']`);
+      if (!row) return;
+      let boxes = row.querySelectorAll(".box");
+      for (let i = 0; i < selectedLength; i++) {
+        boxes[i].textContent = currentAttempt[i] || "";
+      }
+    }
+
+    function markKey(letter, color) {
+      let key = document.querySelector(`.key[data-letter='${letter}']`);
+      if (key && !key.classList.contains("green")) {
+        // hapus kelas warna sebelumnya lalu tambahkan yang baru
+        key.classList.remove("yellow", "gray");
+        key.classList.add(color);
+      }
+    }
+
+    function submitAttempt() {
+      if (currentAttempt.length !== selectedLength) {
+        message.textContent = `⚠️ Kata harus ${selectedLength} huruf!`;
+        return;
+      }
+      if (!words.includes(currentAttempt)) {
+        message.textContent = "❌ Kata tidak ditemukan dalam kamus!";
+        return;
+      }
+      
+      let row = document.querySelector(`.grid[data-index='${attempts}']`);
+      if (!row) return;
+      let boxes = row.querySelectorAll(".box");
+      let answerArray = answer.split("");
+      let guessArray = currentAttempt.split("");
+      let marked = Array(selectedLength).fill(false);
+      
+      // first pass: green
+      for (let i = 0; i < selectedLength; i++) {
+        if (guessArray[i] === answerArray[i]) {
+          boxes[i].classList.add("green");
+          markKey(guessArray[i], "green");
+          marked[i] = true;
+        }
+      }
+      
+      // second pass: yellow / gray
+      for (let i = 0; i < selectedLength; i++) {
+        if (boxes[i].classList.contains("green")) continue;
+        let index = answerArray.findIndex((char, idx) => char === guessArray[i] && !marked[idx]);
+        if (index !== -1) {
+          boxes[i].classList.add("yellow");
+          markKey(guessArray[i], "yellow");
+          marked[index] = true;
+        } else {
+          boxes[i].classList.add("gray");
+          markKey(guessArray[i], "gray");
+        }
+      }
+      
+      // cek menang / kalah
+      if (currentAttempt === answer) {
+        const arti = kamus[answer] ? kamus[answer] : "Tidak ada arti";
+        message.innerHTML = `🎉 SELAMAT! Kata "${answer}" 🎉<br>📖 Artinya: ${arti}`;
+      } 
+      else if (attempts + 1 >= maxAttempts) {
+        const arti = kamus[answer] ? kamus[answer] : "Tidak ada arti";
+        message.innerHTML = `😔 GAME OVER! Kata yang benar adalah "${answer}".<br>📖 Arti: ${arti}`;
+      } else {
+        message.textContent = `👍 Tebakan ke-${attempts+1} dari ${maxAttempts}`;
+      }
+      
+      attempts++;
+      currentAttempt = "";
+      
+      // jika game over atau menang, nonaktifkan input keyboard tombol? tidak perlu, tetap bisa tapi sudah tidak ada baris baru. 
+      // Biarkan user tetap bisa menekan2, tapi baris baru tidak tersedia karena attempts >= maxAttempts. sesuai logic asli tidak ada disable. 
+      // Namun supaya pengalaman lebih baik, jika game selesai, kita tidak perlu menghapus, user bisa tekan mulai lagi. 
+    }
+
+    // event listener untuk keyboard fisik
+    function handlePhysicalKey(e) {
+      // jika game selesai? tidak perlu batasi karena akan tetap mencoba update row yang mungkin tidak ada, tapi aman.
+      if (/^[a-zA-Z]$/.test(e.key)) {
+        e.preventDefault();
+        handleInput(e.key.toLowerCase());
+      }
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        handleBackspace();
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitAttempt();
+      }
+    }
+    
+    // fungsi reset game
+    function startGame() {
+      selectedLength = parseInt(lengthSelector.value);
+      let filteredWords = words.filter((word) => word.length === selectedLength);
+      
+      if (filteredWords.length === 0) {
+        message.textContent = "⚠️ Tidak ada kata dengan panjang yang dipilih!";
+        return;
+      }
+      
+      answer = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+      attempts = 0;
+      gameBoard.innerHTML = "";
+      // buat grid baru
+      for (let i = 0; i < maxAttempts; i++) {
+        let row = document.createElement("div");
+        row.classList.add("grid");
+        row.dataset.index = i;
+        for (let j = 0; j < selectedLength; j++) {
+          let box = document.createElement("div");
+          box.classList.add("box");
+          row.appendChild(box);
+        }
+        gameBoard.appendChild(row);
+      }
+      
+      // buat ulang keyboard (dengan tombol hapus)
+      createKeyboard();
+      currentAttempt = "";
+      message.innerHTML = "🎯 Game dimulai! Tebak kata " + selectedLength + " huruf.";
+      // hilangkan event listener ganda, pasang ulang (tapi aman, hanya sekali)
+      document.removeEventListener("keydown", handlePhysicalKey);
+      document.addEventListener("keydown", handlePhysicalKey);
+    }
+    
+    startBtn.addEventListener("click", () => {
+      if (!words.length) {
+        message.textContent = "⌛ Kamus masih dimuat, tunggu sebentar...";
+        // coba load ulang? tidak perlu, fetch async. Tapi beri pesan
+        const checkInterval = setInterval(() => {
+          if (words.length > 0) {
+            clearInterval(checkInterval);
+            startGame();
+          }
+        }, 200);
+        setTimeout(() => {
+          if (words.length === 0) message.textContent = "❌ Gagal muat kamus.json, refresh halaman.";
+          clearInterval(checkInterval);
+        }, 3000);
+        return;
+      }
+      startGame();
+    });
+    
+    // inisialisasi awal: tampilkan keyboard kosong tapi board kosong, sampai mulai ditekan
+    // biarkan board kosong dan keyboard siap, tapi tombol hapus dan lain-lain belum berfungsi hingga game dimulai.
+    // namun kita bisa buat keyboard placeholder dengan tombol hapus juga, supaya estetik.
+    function initEmptyKeyboard() {
+      keyboardDiv.innerHTML = "";
+      const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+      rows.forEach((row) => {
+        let rowDiv = document.createElement("div");
+        rowDiv.classList.add("key-row");
+        row.split("").forEach((letter) => {
+          let key = document.createElement("button");
+          key.textContent = letter;
+          key.classList.add("key");
+          key.dataset.letter = letter;
+          key.disabled = true;
+          key.style.opacity = "0.6";
+          key.addEventListener("click", () => {});
+          rowDiv.appendChild(key);
+        });
+        keyboardDiv.appendChild(rowDiv);
+      });
+      let actionRow = document.createElement("div");
+      actionRow.classList.add("key-row");
+      const deleteKey = document.createElement("button");
+      deleteKey.textContent = "⌫ HAPUS";
+      deleteKey.classList.add("key", "special-key");
+      deleteKey.disabled = true;
+      deleteKey.style.opacity = "0.6";
+      actionRow.appendChild(deleteKey);
+      const submitKey = document.createElement("button");
+      submitKey.textContent = "✨ TEBAK";
+      submitKey.classList.add("key", "submit-key");
+      submitKey.disabled = true;
+      actionRow.appendChild(submitKey);
+      keyboardDiv.appendChild(actionRow);
+    }
+    initEmptyKeyboard();
+    
+    // Override start game agar keyboard diaktifkan dan fungsi handle terpasang dengan benar.
+    const originalStartHandler = startBtn.click;
+    // memperbaiki: karena startBtn sudah ada event listener, kita biarkan tapi juga override agar ketika start keyboard benar2 aktif.
+    // Supaya tombol hapus berfungsi saat game berjalan, kita ganti method createKeyboard terintegrasi.
+    // kita simpan referensi baru untuk menggantikan init kosong.
+    // Tambahan: kita juga perlu memastikan bahwa setelah start, keyboard memiliki event yang benar.
+    // Karena createKeyboard akan membuat keyboard baru dengan event listener yang tepat (handleInput, handleBackspace, submit).
+    // Jadi tidak masalah.
+    // Juga perlu supaya jika kamus belum load, start game akan delay.
+    
+    // ekstra: jika pengguna menekan tombol mulai saat kamus belum selesai, kita handle dengan cek words.
+    // Selesaikan juga agar tombol hapus di keyboard fisik bekerja.
+    // Sudah pakai handlePhysicalKey yang aktif setelah startGame.
+    
+    // Jika words sudah ada sebelum user klik start, maka startGame langsung jalan.
+    // kasus halaman dimuat ulang, kamus mungkin masih kosong.
+    // tombol start tetap aman.
+    window.checkAndEnable = function() {
+      if(words.length > 0 && !gameBoard.children.length) {
+        // tidak otomatis mulai, biarkan user pilih.
+      }
+    };
+    
+    // modifikasi kecil agar ketika mulai, keyboard benar-benar fungsional dengan tombol hapus
+    // Karena createKeyboard didalam startGame dipanggil, semua tombol key memiliki event handler yang baru.
+    // selesai.
+    
+    // memastikan bahwa ada tombol hapus di keyboard saat bermain
+    // done
+    // menjaga style modern tanpa mengubah fungsionalitas permainan
+    console.log("Estetik mode aktif + tombol hapus tersedia");
+  });
+</script>
+</body>
+</html>
